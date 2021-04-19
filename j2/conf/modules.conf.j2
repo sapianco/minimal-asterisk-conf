@@ -1,0 +1,37 @@
+[modules]
+autoload=no                     ; only load explicitely declared modules
+
+load => codec_ulaw.so           ; alaw codec for voice
+load => codec_alaw.so           ; alaw codec for voice
+load => pbx_config.so           ; reading and loading configuration
+load => chan_sip.so             ; SIP protocol
+load => app_macro.so            ; Extension Macros
+load => app_dial.so             ; Dial application
+load => app_echo.so             ; echo application
+load => app_playback.so         ; Sound File Playback Application
+load => res_clioriginate.so     ; originate calls from commandline.
+load => format_wav.so           ; Microsoft WAV/WAV16 format (8kHz/16kHz)
+load => format_gsm.so           ; Raw GSM data
+load => format_pcm.so           ; Raw/Sun uLaw/ALaw 8KHz (PCM,PCMA,AU)
+load => res_timing_timerfd.so
+;load => res_timing_pthread
+load => res_rtp_asterisk.so
+load => bridge_simple
+load => bridge_builtin_features.so
+
+;;;;;;;
+;; Random outbound Caller ID
+;;;;;;;
+load => func_rand.so			; Random number dialplan function
+load => func_cut.so				; Cut out information from a string
+load => func_db.so				; Database (astdb) related dialplan function
+
+
+{% if TRUNKS_EBS == true %}
+
+load => chan_khomp.so
+
+{% endif %}
+
+
+[global]

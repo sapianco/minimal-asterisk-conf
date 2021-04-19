@@ -1,0 +1,83 @@
+[general]
+static=yes
+writeprotect=no
+clearglobalvars=no
+
+[globals]
+
+;########################
+;# Router Class 4
+;########################
+
+{% if TRUNKS_UNE == true %}
+[rc4-une]
+exten => 8999943,1,Answer()
+exten => 8999943,n,Playback(demo-echotest)
+exten => 8999943,n,Echo()
+exten => 8999943,n,Playback(demo-echodone)
+exten => 8999943,n,Hangup()
+
+;###########################
+;# Trunks Une
+;###########################
+exten => _X.,1,NoOp()
+exten => _X.,n,Dial(sip/une/${EXTEN})
+
+[from-pstn-une]
+exten => _X.,1,NoOp()
+exten => _X.,n,Dial(sip/rc4-une/${EXTEN})
+exten => _X.,n,Hangup()
+
+{% endif %}
+
+
+{% if TRUNKS_EBS == true %}
+
+[rc4-khomp]
+include = khomp-movistar
+include = khomp-comcel
+exten => _5730[0-3]XXXXXXX,1,NoOp()
+exten => _5730[0-3]XXXXXXX,n,Dial(khomp/*gtigo/${EXTEN:2})
+exten => _5730[0-3]XXXXXXX,n,Hangup()
+
+[khomp-movistar]
+exten => _5731[5-8]XXXXXXX,1,NoOp()
+exten => _5731[5-8]XXXXXXX,n,Dial(khomp/*gmovistar/${EXTEN:2})
+exten => _5731[5-8]XXXXXXX,n,Hangup()
+
+[khomp-comcel]
+exten => _573XXXXXXXXX,1,NoOp()
+exten => _573XXXXXXXXX,n,Dial(khomp/*gclaro/${EXTEN:2})
+exten => _573XXXXXXXXX,n,Hangup()
+
+{% endif %}
+
+[macro-outisbusy]
+;##################################
+;# use on Vicidial Report Hangup Cause
+;# Example
+;# exten => _3XXXXXXXXX,1,NoOp()
+;# exten => _3XXXXXXXXX,n,Dial(khomp/*gcelular/${EXTEN})
+;# exten => _3XXXXXXXXX,n,Macro(outisbusy)
+;# exten => _3XXXXXXXXX,n,Hangup()
+;##################################
+
+exten => s,1,NoOp()
+exten => s,n,GotoIf($[${HANGUPCAUSE} = 16]?ok)
+exten => s,n,GotoIf($[${HANGUPCAUSE} >= 1]?errado:next1)
+exten => s,n(errado),Playback(the-hangup-cause-is)
+exten => s,n,SayNumber(${HANGUPCAUSE})
+exten => s,n,Hangup()
+exten => s,n(next1),Noop(Logica no implementada para HanguCause HANGUPCAUSE=${HANGUPCAUSE})
+exten => s,n,Hangup()
+exten => s,n(ok),Hangup()
+
+
+[random-cid]
+exten => s,1,NoOp()
+exten => s,n,Set(ALLCID=${DB(CID/1)})
+exten => s,n,Set(LGTH=${FIELDQTY(ALLCID,-)})
+exten => s,n,Set(SGLCID=${RAND(1,${LGTH})})
+exten => s,n,Set(CAID=${CUT(ALLCID,,${SGLCID})})
+exten => s,n,Set(CALLERID(num)=${CAID})
+exten => s,n,Return()

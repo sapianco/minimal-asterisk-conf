@@ -1,0 +1,154 @@
+[general]
+{% if USERAGENT is defined %}
+
+useragent = {{ USERAGENT }}
+
+{% endif %}
+context=public                  ; Default context for incoming calls. Defaults to 'default'
+allowoverlap=no                 ; Disable overlap dialing support. (Default is yes)
+udpbindaddr=0.0.0.0             ; IP address to bind UDP listen socket to (0.0.0.0 binds to all)
+tcpenable=no                    ; Enable server for incoming TCP connections (default is no)
+tcpbindaddr=0.0.0.0             ; IP address for TCP server to bind to (0.0.0.0 binds to all interfaces)
+transport=udp                   ; Set the default transports.  The order determines the primary default transport.
+srvlookup=yes                   ; Enable DNS SRV lookups on outbound calls
+t38pt_udptl=yes                 ; Enable UDPTL for Fax.t38
+dtmfmode=rfc2833                ; Enable rfc2833 For DTMF
+relaxdtmf=yes                   ; Relax DTMF
+alwaysauthreject=yes            ; Alway Rejet For try avoid Hacking attacks.
+language=es_MX_f_Allison        ; Language Español
+
+
+{% if EXTERNIP is defined %}
+externip = {{  EXTERNIP }}
+
+{% else %}
+;externip=X.X.X.X
+;externip = 172.16.0.1
+{% endif %}
+
+{% if LOCALNET is defined %}
+localnet = {{  LOCALNET }}
+{% else %}
+;localnet = 172.16.0.1/255.255.255.0
+{% endif %}
+
+
+[authentication]
+[basic-options](!)                ; a template
+        dtmfmode=rfc2833
+        context=from-office
+        type=friend
+[natted-phone](!,basic-options)   ; another template inheriting basic-options
+        directmedia=no
+        host=dynamic
+[public-phone](!,basic-options)   ; another template inheriting basic-options
+        directmedia=yes
+[my-codecs](!)                    ; a template for my preferred codecs
+        disallow=all
+        allow=ilbc
+        allow=g729
+        allow=gsm
+        allow=g723
+        allow=ulaw
+[ulaw-phone](!)                   ; and another one for ulaw-only
+        disallow=all
+        allow=ulaw
+
+;##################
+;# Router Class 4
+;##################
+
+{% if TRUNKS_UNE == true %}
+[rc4-une]
+username=rc4-une
+type=friend
+trustrpid=yes
+sendrpid=yes
+secret = {{  RC4_UNE_AUTH_PASSWORD }}
+qualify=yes
+host = {{  RC4_UNE_HOST_NAME }}
+fromuser=rc4-une
+defaultuser=rc4-une
+fromdomain = {{  RC4_UNE_HOST_NAME }}
+context=rc4-une
+accountcode=rc4-une
+disallow=all
+allow=ulaw
+nat=force_rport,comedia
+
+;##############
+;# PSTN
+;##############
+
+[une]
+type=friend
+qualify=yes
+host=172.17.179.166
+port=5060
+fromuser = {{  UNE_FROMUSER }}
+insecure=invite,port
+dtmfmode=rfc2833
+context=from-pstn-une
+session-timers=accept
+session-expires=1800
+session-minse=90
+session-refresher=uac
+canreinvite=no
+disallow=all
+allow=ulaw
+trustrpid=yes
+sendrpid=yes
+nat=auto
+
+{%- endif %}
+
+{% if TRUNKS_EBS == true %}
+[rc4-khomp]
+username=rc4-khomp
+type=friend
+trustrpid=yes
+sendrpid=yes
+secret = {{  RC4_KHOMP_AUTH_PASSWORD }}
+qualify=yes
+host = {{  RC4_KHOMP_HOST_NAME }}
+fromuser=rc4-khomp
+defaultuser=rc4-khomp
+fromdomain = {{  RC4_KHOMP_HOST_NAME }}
+context=rc4-khomp
+accountcode=rc4-khomp
+disallow=all
+allow=ulaw
+nat=auto
+
+
+{%- endif %}
+
+
+
+{% if SAPIAN_AUTH_PASSWORD is defined -%}
+[basic](!)
+type=friend
+record_out=Adhoc
+record_in=Adhoc
+qualify=yes
+port=5060
+nat=force_rport,comedia
+host=dynamic
+dtmfmode=rfc2833
+canreinvite=no
+accountcode=
+call-limit=5
+disallow=all
+allow=ulaw
+
+[sapian](basic)
+password = {{ SAPIAN_AUTH_PASSWORD }}
+pickupgroup=1
+mailbox=102@default
+dial=SIP/102
+context=rc4-une
+callgroup=1
+callerid=102 <102>
+
+
+{%- endif %}

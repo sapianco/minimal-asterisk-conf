@@ -1,0 +1,11 @@
+[general]
+rtpstart=10000
+{% if RTP_LAST_PORT is defined %}
+
+rtpend = {{  RTP_LAST_PORT }}
+
+{% else %}
+
+rtpend = 20000
+
+{%- endif %}
